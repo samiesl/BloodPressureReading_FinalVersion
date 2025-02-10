@@ -1,0 +1,169 @@
+#--------------------------------------------------- 
+#------Created  : 18/01/2025 - Mohammad Sami
+#------Modified : 10/02/2025 - Added Error handling
+#------Description : Blood Pressure Readings and Make recommendations 
+#----------------------------------------------------
+
+#-----Define Functions---------------
+#=====================================================
+# This section contains all the functions that process blood pressure data
+# Each function has a specific task in analyzing the readings
+#=====================================================
+
+def calculate_average(readings):
+    """Calculate the average of a list of blood pressure readings."""
+    try:
+        # Check for zero or unreasonably low readings
+        if any(reading <= 30 or reading >=200 for reading in readings):
+            print("Error: Please take another reading.")
+            return None
+        return sum(readings) / len(readings)
+    except:
+        print("Error: Problem calculating average. Please check the readings.")
+        return None
+
+def assign_status(systolic_avg, diastolic_avg):
+    """Assign a BP status based on systolic and diastolic averages."""
+     # This function determines if blood pressure is Low, Normal, or High
+    # Uses standard medical thresholds:
+    # - Low: systolic < 120 AND diastolic < 80
+    # - High: systolic >= 140 OR diastolic >= 90
+    # - Normal: all other cases
+    # Return None if either average is None (invalid reading)
+    if systolic_avg is None or diastolic_avg is None:
+        return None
+        
+    if systolic_avg < 120 and diastolic_avg < 80:
+        return 'Low'
+    elif systolic_avg >= 140 or diastolic_avg >= 90:
+        return 'High'
+    else:
+        return 'Normal'
+
+def GP_Referral(status):
+    """Make suggestions to the patient."""
+        # This function provides recommendations based on blood pressure status:
+    # - Normal BP: No GP visit needed
+    # - Low BP: Schedule a follow-up
+    # - High BP: Book GP appointment
+
+    if status is None:
+        return 'Invalid reading - Please take new measurements'
+    elif status == 'Normal':
+        return 'Do not refer to GP'
+    elif status == 'Low':
+        return 'Come back for checkup'
+    else:
+        return 'Book an appointment with GP'
+
+#-----End Functions---------------
+
+
+#=====================================================
+# MAIN PROGRAM
+#=====================================================
+# This section contains the main program that:
+# 1. Reads the input file
+# 2. Processes each row of blood pressure readings
+# 3. Generates output with recommendations
+#=====================================================
+# Import required readings
+
+import csv  #For reading/writing CSV files#
+import os   #For checking any existing files#
+
+try:
+    #---------------------------------------------
+    # STEP 1: CHECK INPUT FILE
+    #---------------------------------------------
+    # Check if the input file 'BP.csv' exists
+    # If not, program will stop and show error
+    # Check if file exists
+    
+    if not os.path.exists('BP.csv'):
+        print("Error: BP.csv file not found!")
+        exit()
+    
+    #---------------------------------------------
+    # STEP 2: INITIALIZE DATA STORAGE
+    #---------------------------------------------
+    # Initialize the BP data list
+    BP = []
+
+    #---------------------------------------------
+    # STEP 3: READ AND PROCESS DATA
+    #---------------------------------------------
+    # Read the CSV file
+
+    with open('BP.csv', 'r') as file:
+        reader = csv.reader(file)
+        header = next(reader)  # Read header row
+        
+        for row in reader:
+            try:
+                Reading, Reading1, Reading2, Reading3 = row
+                
+                #---------------------------------------------
+                # STEP 4: VALIDATE READINGS
+                #---------------------------------------------
+                # Convert readings to integers
+                # If conversion fails, skip this row
+                
+                try:
+                    readings = [int(Reading1), int(Reading2), int(Reading3)]
+                except ValueError:
+                    print(f"Warning: Invalid readings found for {Reading}, skipping this row")
+                    continue
+
+                average = calculate_average(readings)
+                
+                #---------------------------------------------
+                # STEP 5: DETERMINE BP STATUS
+                #---------------------------------------------
+                # Check if it's systolic or diastolic reading
+                # Assign status based on the type of reading
+                if average is None:
+                    print(f"Warning: Invalid blood pressure values for {Reading}, please take new readings")
+                    BP.append([Reading, Reading1, Reading2, Reading3, "Invalid", "Error", "Take new readings"])
+                    continue
+                
+                if 'Sys' in Reading:
+                    status = assign_status(average, 0)  # Only systolic for status
+                elif 'Dia' in Reading:
+                    status = assign_status(0, average)  # Only diastolic for status
+                else:
+                    print(f"Warning: Invalid reading type {Reading}, skipping this row")
+                    continue
+
+                #---------------------------------------------
+                # STEP 6: GET GP REFERRAL
+                #---------------------------------------------
+                # Get recommendation based on BP status
+
+                referral = GP_Referral(status)
+                BP.append([Reading, Reading1, Reading2, Reading3, average, status, referral])
+
+            except:
+                print(f"Warning: Problem processing row for {Reading}, skipping this row")
+                continue
+    
+    #---------------------------------------------
+    # STEP 7: SAVE RESULTS
+    #---------------------------------------------
+    # Write the results to a new CSV file
+    try:
+        with open('BP_SyDy_output.csv', 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Reading', 'Reading1', 'Reading2', 'Reading3', 'Average', 'Status', 'GpReferral'])
+            writer.writerows(BP)
+        
+        print('Results saved to BP_SyDy_output.csv')
+    
+    except:
+        print("Error: Could not write to output file!")
+#---------------------------------------------
+# STEP 8: ERROR HANDLING
+#---------------------------------------------
+# Catch and display any unexpected errors 
+except Exception as e:
+    print(f"An error occurred: {str(e)}")
