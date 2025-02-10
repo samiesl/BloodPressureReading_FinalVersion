@@ -1,0 +1,11 @@
+Reading,Reading1,Reading2,Reading3,Average,Status,GpReferral
+P1Sys,110,130,130,123.33333333333333,Normal,Do not refer to GP
+P1Dias,85,85,90,86.66666666666667,Normal,Do not refer to GP
+P2Sys,160,140,150,150.0,High,Book an appointment with GP
+P2Dias,99,95,100,98.0,High,Book an appointment with GP
+P3Sys,145,135,140,140.0,High,Book an appointment with GP
+P3Dias,100,95,110,101.66666666666667,High,Book an appointment with GP
+P4Sys,100,100,95,98.33333333333333,Low,Come back for checkup
+P4Dias,70,70,65,68.33333333333333,Low,Come back for checkup
+P5Sys, 0,200, 120,Invalid,Error,Take new readings
+P5Dias,20,80,90,Invalid,Error,Take new readings
